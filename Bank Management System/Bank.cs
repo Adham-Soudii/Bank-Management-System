@@ -72,7 +72,7 @@
 
         public override bool Withdraw(double amount)
         {
-            amount += WithdrawalFee; 
+            amount += WithdrawalFee;
             return base.Withdraw(amount);
         }
 
@@ -215,3 +215,5 @@
     }
 
 }
+
+

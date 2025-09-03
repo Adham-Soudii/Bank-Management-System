@@ -1,5 +1,5 @@
-﻿using School_Management_System;
-using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
 
 namespace School_Management_System
 {
@@ -22,25 +22,29 @@ namespace School_Management_System
         public string Name { get; set; }
         public int Age { get; set; }
         public List<Course> Courses { get; set; }
+
         public bool Enroll(Course course)
         {
             if (Courses.Contains(course))
-            {
                 return false;
-            }
-            else
-            {
-                Courses.Add(course);
-                return true;
-            }
+            Courses.Add(course);
+            return true;
         }
-        private static string GetTitle(Course c) => c.Title;
 
         public override string PrintDetails()
         {
-            string courseNames = string.Join(", ", Courses.ConvertAll(GetTitle));
+            List<string> titles = new List<string>();
+            foreach (Course c in Courses)
+            {
+                titles.Add(c.Title);
+            }
+            string? courseNames = string.Join(", ", titles.ToArray());
+            return StudentId + " " + Name + " " + Age + " Courses: " + courseNames;
+        }
 
-            return $"{StudentId} {Name} {Age} Courses: {courseNames}";
+        public override string ToString()
+        {
+            return PrintDetails();
         }
     }
 
@@ -56,7 +60,16 @@ namespace School_Management_System
         public int InstructorId { get; set; }
         public string Name { get; set; }
         public string Specialization { get; set; }
-        public override string PrintDetails() => $"{InstructorId} {Name} {Specialization}";
+
+        public override string PrintDetails()
+        {
+            return InstructorId + " " + Name + " " + Specialization;
+        }
+
+        public override string ToString()
+        {
+            return PrintDetails();
+        }
     }
 
     class Course : Person
@@ -71,316 +84,309 @@ namespace School_Management_System
         public int CourseId { get; set; }
         public string Title { get; set; }
         public Instructor Instructor { get; set; }
-        public override string PrintDetails() => $"{CourseId} {Title} Instructor: {Instructor.Name}";
+
+        public override string PrintDetails()
+        {
+            return CourseId + " " + Title + " Instructor: " + Instructor.Name;
+        }
+
+        public override string ToString()
+        {
+            return PrintDetails();
+        }
     }
 
     class SchoolStudentManager
     {
-        public SchoolStudentManager()
-        {
-            Students = new List<Student>();
-            Courses = new List<Course>();
-            Instructors = new List<Instructor>();
-        }
+        public List<Student> Students = new List<Student>();
+        public List<Course> Courses = new List<Course>();
+        public List<Instructor> Instructors = new List<Instructor>();
 
-        public List<Student> Students { get; set; }
-        public List<Course> Courses { get; set; }
-        public List<Instructor> Instructors { get; set; }
         public bool AddStudent(Student student)
         {
-            for (int i = 0; i < Students.Count; i++)
+            foreach (Student s in Students)
             {
-                if (Students[i].StudentId == student.StudentId)
-                {
+                if (s.StudentId == student.StudentId)
                     return false;
-                }
             }
-
             Students.Add(student);
             return true;
         }
+
         public bool AddCourse(Course course)
         {
-            for (int i = 0; i < Courses.Count; i++)
+            foreach (Course c in Courses)
             {
-                if (Courses[i].CourseId == course.CourseId)
-                {
+                if (c.CourseId == course.CourseId)
                     return false;
-                }
             }
             Courses.Add(course);
             return true;
         }
+
         public bool AddInstructor(Instructor instructor)
         {
-            for (int i = 0; i < Instructors.Count; i++)
+            foreach (Instructor i in Instructors)
             {
-                if (Instructors[i].InstructorId == instructor.InstructorId)
-                {
+                if (i.InstructorId == instructor.InstructorId)
                     return false;
-                }
             }
             Instructors.Add(instructor);
             return true;
         }
-        public Student? FindStudent(int studentId, string name)
+
+        public Student? FindStudent(int studentId)
         {
-            for (int i = 0; i < Students.Count; i++)
+            foreach (Student s in Students)
             {
-                if (Students[i].StudentId == studentId && Students[i].Name.ToLower() == name.ToLower())
-                {
-                    return Students[i];
-                }
+                if (s.StudentId == studentId)
+                    return s;
             }
             return null;
         }
-        public Course? FindCourse(int courseId, string name)
+
+        public Course? FindCourse(int courseId)
         {
-            for (int i = 0; i < Courses.Count; i++)
+            foreach (Course c in Courses)
             {
-                if (Courses[i].CourseId == courseId && Courses[i].Title.ToLower() == name.ToLower())
-                {
-                    return Courses[i];
-                }
+                if (c.CourseId == courseId)
+                    return c;
             }
             return null;
         }
-        public Instructor? FindInstructor(int instructorId, string name)
+
+        public Instructor? FindInstructor(int instructorId)
         {
-            for (int i = 0; i < Instructors.Count; i++)
+            foreach (Instructor i in Instructors)
             {
-                if (Instructors[i].InstructorId == instructorId || Instructors[i].Name.ToLower() == name.ToLower())
-                {
-                    return Instructors[i];
-                }
+                if (i.InstructorId == instructorId)
+                    return i;
             }
             return null;
         }
-        public bool DeleteStudent(int studentId, string name)
+
+        public bool DeleteStudent(int studentId)
         {
-            var student = FindStudent(studentId, name);
-            if (student != null)
-            {
-                Students.Remove(student);
-                return true;
-            }
+            Student? s = FindStudent(studentId);
+            if (s != null)
+                return Students.Remove(s);
             return false;
         }
-        public bool UpdateStudent(int studentId, string name, int newId, string newName, int newAge, List<Course> newCourses)
+
+        public bool UpdateStudent(int studentId, int newId, string newName, int newAge, List<Course> newCourses)
         {
-            Student? student = FindStudent(studentId, name);
-            if (student == null)
+            Student? st = FindStudent(studentId);
+            if (st == null) return false;
+
+            if (newId != studentId && FindStudent(newId) != null)
                 return false;
 
-            student.StudentId = newId;
-            student.Name = newName;
-            student.Age = newAge;
-            student.Courses = newCourses;
-
+            st.StudentId = newId;
+            st.Name = newName;
+            st.Age = newAge;
+            st.Courses = newCourses;
             return true;
         }
+
         public bool EnrollStudentInCourse(int studentId, int courseId)
         {
-            for (int i = 0; i < Students.Count; i++)
-            {
-                if (Students[i].StudentId == studentId)
-                {
-                    for (int j = 0; j < Courses.Count; j++)
-                    {
-                        if (Courses[j].CourseId == courseId)
-                        {
-                            return Students[i].Enroll(Courses[j]);
-                        }
-                    }
-                }
-            }
+            Student? st = FindStudent(studentId);
+            Course? cr = FindCourse(courseId);
+            if (st != null && cr != null)
+                return st.Enroll(cr);
             return false;
         }
 
-
-        public List<Student> GetAllStudents() => Students;
-        public List<Instructor> GetAllInstructors() => Instructors;
-        public List<Course> GetAllCourses() => Courses;
-
-
-
-
+        public List<Student> GetAllStudents() { return Students; }
+        public List<Instructor> GetAllInstructors() { return Instructors; }
+        public List<Course> GetAllCourses() { return Courses; }
     }
 
     internal class Program
     {
-        static void Main(string[] args)
+        static int ReadInt(string prompt)
         {
-            var manager = new SchoolStudentManager();
+            Console.Write(prompt);
+            string? input = Console.ReadLine();
+            int v;
+            try
+            {
+                v = Convert.ToInt32(input);
+            }
+            catch
+            {
+                v = 0;
+            }
+            return v;
+        }
 
-            var instructor1 = new Instructor(1, "Ali", "C# Basics");
-            var instructor2 = new Instructor(2, "Sara", "Java");
-            manager.AddInstructor(instructor1);
-            manager.AddInstructor(instructor2);
+        static string ReadString(string prompt)
+        {
+            Console.Write(prompt);
+            string? input = Console.ReadLine();
+            if (input == null || input == "")
+                return "Unknown";
+            return input;
+        }
 
-            var course1 = new Course(101, "C# Basics", instructor1);
-            var course2 = new Course(102, "Advanced Java", instructor2);
-            manager.AddCourse(course1);
-            manager.AddCourse(course2);
+        static void Main()
+        {
+            SchoolStudentManager mgr = new SchoolStudentManager();
 
-            var student1 = new Student(1, "Ahmed", 20, new List<Course>());
-            var student2 = new Student(2, "Mona", 22, new List<Course>());
-            manager.AddStudent(student1);
-            manager.AddStudent(student2);
+            mgr.AddInstructor(new Instructor(1, "Ali", "C# Basics"));
+            mgr.AddInstructor(new Instructor(2, "Sara", "Java"));
+            Instructor? i1 = mgr.FindInstructor(1);
+            if (i1 != null)
+                mgr.AddCourse(new Course(101, "C# Basics", i1));
+
+            Instructor? i2 = mgr.FindInstructor(2);
+            if (i2 != null)
+                mgr.AddCourse(new Course(102, "Advanced Java", i2));
+
+            mgr.AddStudent(new Student(1, "Ahmed", 20, new List<Course>()));
+            mgr.AddStudent(new Student(2, "Mona", 22, new List<Course>()));
 
             bool running = true;
-
             while (running)
             {
                 Console.WriteLine("\n========================================");
                 Console.WriteLine("      SCHOOL MANAGEMENT SYSTEM MENU      ");
                 Console.WriteLine("========================================");
-                Console.WriteLine("1. Add Student");
-                Console.WriteLine("2. Add Instructor");
-                Console.WriteLine("3. Add Course");
-                Console.WriteLine("4. Enroll Student in Course");
-                Console.WriteLine("5. Update Student Information");
-                Console.WriteLine("6. Delete Student");
-                Console.WriteLine("7. View All Students");
-                Console.WriteLine("8. View All Instructors");
-                Console.WriteLine("9. View All Courses");
-                Console.WriteLine("10. Find Student by ID & Name");
-                Console.WriteLine("11. Find Course by ID & Name");
-                Console.WriteLine("12. Find Instructor by ID & Name");
-                Console.WriteLine("0. Exit");
+                Console.WriteLine("1.  Add Student");
+                Console.WriteLine("2.  Add Instructor");
+                Console.WriteLine("3.  Add Course");
+                Console.WriteLine("4.  Enroll Student in Course");
+                Console.WriteLine("5.  Update Student Information");
+                Console.WriteLine("6.  Delete Student");
+                Console.WriteLine("7.  View All Students");
+                Console.WriteLine("8.  View All Instructors");
+                Console.WriteLine("9.  View All Courses");
+                Console.WriteLine("10. Find Student by ID");
+                Console.WriteLine("11. Find Course by ID");
+                Console.WriteLine("12. Find Instructor by ID");
+                Console.WriteLine("0.  Exit");
                 Console.WriteLine("========================================");
                 Console.Write("Enter your choice: ");
 
-                string choice = Console.ReadLine() ?? " ";
-
-                switch (choice)
+                string? choice = Console.ReadLine();
+                if (choice == "1")
                 {
-                    case "1":
-                        Console.Write("Student ID: ");
-                        int sid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Student Name: ");
-                        string sname = Console.ReadLine() ?? " ";
-                        Console.Write("Student Age: ");
-                        int sage = int.Parse(Console.ReadLine() ?? " ");
-                        manager.AddStudent(new Student(sid, sname, sage, new List<Course>()));
-                        Console.WriteLine("Student Added.");
-                        break;
-
-                    case "2":
-                        Console.Write("Instructor ID: ");
-                        int iid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Instructor Name: ");
-                        string iname = Console.ReadLine() ?? " ";
-                        Console.Write("Specialization: ");
-                        string spec = Console.ReadLine() ?? " ";
-                        manager.AddInstructor(new Instructor(iid, iname, spec));
-                        Console.WriteLine("Instructor Added.");
-                        break;
-
-                    case "3":
-                        Console.Write("Course ID: ");
-                        int cid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Course Title: ");
-                        string ctitle = Console.ReadLine() ?? " ";
-                        Console.Write("Instructor ID: ");
-                        int ciid = int.Parse(Console.ReadLine() ?? " ");
-                        Instructor? ins = manager.FindInstructor(ciid, "");
-                        if (ins != null)
-                        {
-                            manager.AddCourse(new Course(cid, ctitle, ins));
-                            Console.WriteLine("Course Added.");
-                        }
-                        else Console.WriteLine("Instructor not found!");
-                        break;
-
-                    case "4":
-                        Console.Write("Student ID: ");
-                        int esid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Course ID: ");
-                        int ecid = int.Parse(Console.ReadLine() ?? " ");
-                        bool enrolled = manager.EnrollStudentInCourse(esid, ecid);
-                        Console.WriteLine(enrolled ? "Enrollment Successful!" : "Enrollment Failed!");
-                        break;
-
-                    case "5":
-                        Console.Write("Current Student ID: ");
-                        int usid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Current Student Name: ");
-                        string usname = Console.ReadLine() ?? " ";
-                        Console.Write("New ID: ");
-                        int nusid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("New Name: ");
-                        string nname = Console.ReadLine() ?? " ";
-                        Console.Write("New Age: ");
-                        int nuage = int.Parse(Console.ReadLine() ?? " ");
-                        bool updated = manager.UpdateStudent(usid, usname, nusid, nname, nuage, new List<Course>());
-                        Console.WriteLine(updated ? "Student Updated!" : "Update Failed!");
-                        break;
-
-                    case "6":
-                        Console.Write("Student ID to Delete: ");
-                        int dsid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Student Name: ");
-                        string dsname = Console.ReadLine() ?? " ";
-                        bool deleted = manager.DeleteStudent(dsid, dsname);
-                        Console.WriteLine(deleted ? "Student Deleted!" : "Deletion Failed!");
-                        break;
-
-                    case "7":
-                        foreach (var s in manager.GetAllStudents())
-                            Console.WriteLine(s.PrintDetails());
-                        break;
-
-                    case "8":
-                        foreach (var i in manager.GetAllInstructors())
-                            Console.WriteLine(i.PrintDetails());
-                        break;
-
-                    case "9":
-                        foreach (var c in manager.GetAllCourses())
-                            Console.WriteLine(c.PrintDetails());
-                        break;
-
-                    case "10":
-                        Console.Write("Student ID: ");
-                        int fsid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Student Name: ");
-                        string fsname = Console.ReadLine() ?? " ";
-                        var fStudent = manager.FindStudent(fsid, fsname);
-                        Console.WriteLine(fStudent != null ? fStudent.PrintDetails() : "Student not found!");
-                        break;
-
-                    case "11":
-                        Console.Write("Course ID: ");
-                        int fcid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Course Name: ");
-                        string fcname = Console.ReadLine() ?? " ";
-                        var fCourse = manager.FindCourse(fcid, fcname);
-                        Console.WriteLine(fCourse != null ? fCourse.PrintDetails() : "Course not found!");
-                        break;
-
-                    case "12":
-                        Console.Write("Instructor ID: ");
-                        int fiid = int.Parse(Console.ReadLine() ?? " ");
-                        Console.Write("Instructor Name: ");
-                        string finame = Console.ReadLine() ?? " ";
-                        var fInstructor = manager.FindInstructor(fiid, finame);
-                        Console.WriteLine(fInstructor != null ? fInstructor.PrintDetails() : "Instructor not found!");
-                        break;
-
-                    case "0":
-                        running = false;
-                        break;
-
-                    default:
-                        Console.WriteLine("Invalid choice!");
-                        break;
+                    mgr.AddStudent(new Student(
+                        ReadInt("Student ID: "),
+                        ReadString("Student Name: "),
+                        ReadInt("Student Age: "),
+                        new List<Course>()));
+                    Console.WriteLine("Student Added.");
+                }
+                else if (choice == "2")
+                {
+                    mgr.AddInstructor(new Instructor(
+                        ReadInt("Instructor ID: "),
+                        ReadString("Instructor Name: "),
+                        ReadString("Specialization: ")));
+                    Console.WriteLine("Instructor Added.");
+                }
+                else if (choice == "3")
+                {
+                    int cid = ReadInt("Course ID: ");
+                    string? ttl = ReadString("Course Title: ");
+                    Instructor? ins = mgr.FindInstructor(ReadInt("Instructor ID: "));
+                    if (ins == null)
+                    {
+                        Console.WriteLine("Instructor not found!");
+                    }
+                    else
+                    {
+                        mgr.AddCourse(new Course(cid, ttl, ins));
+                        Console.WriteLine("Course Added.");
+                    }
+                }
+                else if (choice == "4")
+                {
+                    bool ok = mgr.EnrollStudentInCourse(
+                        ReadInt("Student ID: "),
+                        ReadInt("Course ID: "));
+                    Console.WriteLine(ok ? "Enrollment Successful!" : "Enrollment Failed!");
+                }
+                else if (choice == "5")
+                {
+                    int oldId = ReadInt("Current Student ID: ");
+                    if (mgr.FindStudent(oldId) == null)
+                    {
+                        Console.WriteLine("Student not found!");
+                    }
+                    else
+                    {
+                        bool upd = mgr.UpdateStudent(
+                            oldId,
+                            ReadInt("New ID: "),
+                            ReadString("New Name: "),
+                            ReadInt("New Age: "),
+                            new List<Course>());
+                        Console.WriteLine(upd ? "Student Updated!" : "Update Failed!");
+                    }
+                }
+                else if (choice == "6")
+                {
+                    bool del = mgr.DeleteStudent(ReadInt("Student ID to Delete: "));
+                    Console.WriteLine(del ? "Student Deleted!" : "Deletion Failed!");
+                }
+                else if (choice == "7")
+                {
+                    foreach (Student s in mgr.GetAllStudents())
+                    {
+                        Console.WriteLine(s);
+                    }
+                }
+                else if (choice == "8")
+                {
+                    foreach (Instructor i in mgr.GetAllInstructors())
+                    {
+                        Console.WriteLine(i);
+                    }
+                }
+                else if (choice == "9")
+                {
+                    foreach (Course c in mgr.GetAllCourses())
+                    {
+                        Console.WriteLine(c);
+                    }
+                }
+                else if (choice == "10")
+                {
+                    Student? st = mgr.FindStudent(ReadInt("Student ID: "));
+                    if (st != null)
+                        Console.WriteLine(st.PrintDetails());
+                    else
+                        Console.WriteLine("Student not found!");
+                }
+                else if (choice == "11")
+                {
+                    Course? cr = mgr.FindCourse(ReadInt("Course ID: "));
+                    if (cr != null)
+                        Console.WriteLine(cr.PrintDetails());
+                    else
+                        Console.WriteLine("Course not found!");
+                }
+                else if (choice == "12")
+                {
+                    Instructor? insr = mgr.FindInstructor(ReadInt("Instructor ID: "));
+                    if (insr != null)
+                        Console.WriteLine(insr.PrintDetails());
+                    else
+                        Console.WriteLine("Instructor not found!");
+                }
+                else if (choice == "0")
+                {
+                    running = false;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice!");
                 }
             }
 
             Console.WriteLine("Exiting School Management System. Goodbye!");
         }
-
     }
 }
-
